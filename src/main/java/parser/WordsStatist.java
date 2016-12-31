@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,28 +15,31 @@ import java.util.Map;
 public class WordsStatist {
 
     public static void main(String[] args) throws IOException {
-        Map<String, Integer> ws = new WordsStatist().getTopOccurrences(Paths.get(validateKey(args)));
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(ws.entrySet());
-
-        entries.sort((o1, o2) -> o2.getValue() - o1.getValue());
         System.out.println("Top rated words:");
         System.out.println("Word   |    score  | palindrome");
-        for (Map.Entry<String, Integer> e : entries) {
-            System.out.println(e.getKey() + "   |    " + e.getValue() + "   |    " + PalindromeSearcher.isPalindrome(e.getKey()));
+        for (Occurrence oc : getTopOccurrences(Paths.get(validateKey(args)))) {
+            System.out.println(oc.getWord() + "   |    " + oc.getOccurrences() +
+                    "   |    " + PalindromeSearcher.isPalindrome(oc.getWord()));
         }
     }
 
-    public Map<String, Integer> getTopOccurrences(Path file) throws IOException {
+    public static Occurrence[] getTopOccurrences(Path file) throws IOException {
         String text = new String(Files.readAllBytes(file));
         String words[] = text.split("\\s+");
-        Map<String, Integer> topOccurrences = new HashMap<>();
+        Map<String, Occurrence> topOccurrences = new HashMap<>();
+        Occurrence[] result;
 
         for (String word : words) {
-            Integer occurrence = topOccurrences.get(word) ;
-            occurrence = occurrence != null ? ++occurrence : 1;
-            topOccurrences.put(word, occurrence);
+            Occurrence oc = topOccurrences.get(word);
+            if (oc == null) {
+                topOccurrences.put(word, new Occurrence(word));
+            } else {
+                oc.incrementOccurrence();
+            }
         }
-        return topOccurrences;
+        result = topOccurrences.values().toArray(new Occurrence[topOccurrences.size()]);
+        Arrays.sort(result, (o1, o2) -> o2.getOccurrences() - o1.getOccurrences());
+        return result;
     }
 
     private static String validateKey(String[] args) {
@@ -45,5 +47,26 @@ public class WordsStatist {
             throw new RuntimeException("Provide the path to a text file");
         }
         return args[0];
+    }
+
+    public static class Occurrence {
+        private String word;
+        private int occurrences = 1;
+
+        public Occurrence(String word) {
+            this.word = word;
+        }
+
+        public void incrementOccurrence() {
+            occurrences++;
+        }
+
+        public String getWord() {
+            return word;
+        }
+
+        public int getOccurrences() {
+            return occurrences;
+        }
     }
 }

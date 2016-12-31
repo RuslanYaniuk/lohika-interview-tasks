@@ -1,13 +1,12 @@
 package tests.parser;
 
-import org.junit.Before;
 import org.junit.Test;
 import parser.WordsStatist;
+import parser.WordsStatist.Occurrence;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -18,18 +17,15 @@ import static org.hamcrest.core.Is.is;
  */
 public class WordsStatistTests {
 
-    WordsStatist wordsStatist;
-
-    @Before
-    public void setUp() {
-        wordsStatist = new WordsStatist();
-    }
-
     @Test
     public void getTopOccurrences_textFile_listOfWordsReturned() throws IOException, URISyntaxException {
-        Map<String, Integer> topOccurrences =  wordsStatist
+        Occurrence[] topOccurrences =  WordsStatist
                 .getTopOccurrences(Paths.get(ClassLoader.getSystemResource("test-text.txt").toURI()));
 
-        assertThat(topOccurrences.get("in"), is(3));
+        assertThat(topOccurrences[0].getWord(), is("anna"));
+        assertThat(topOccurrences[0].getOccurrences(), is(3));
+
+        assertThat(topOccurrences[1].getWord(), is("in"));
+        assertThat(topOccurrences[1].getOccurrences(), is(3));
     }
 }
